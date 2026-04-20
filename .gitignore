@@ -1,0 +1,25 @@
+# compiled binaries
+*.exe
+*.obj
+*.lib
+*.exp
+*.pdb
+*.ilk
+
+# ncu profiler reports
+*.ncu-rep
+
+# CUDA intermediate files
+*.cudafe1.cpp
+*.cudafe1.gpu
+*.cudafe2.cpp
+*.cudafe2.gpu
+*.ptx
+*.cubin
+*.fatbin
+*.i
+*.ii
+*.gpu
+
+# temp
+tmpxft_*
