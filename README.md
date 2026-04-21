@@ -38,7 +38,7 @@ The repository is organized as a learning progression. The same operation is imp
 02-memory-hierachy/       Global, shared, and register memory examples
 03-memory-coalescing/     Coalesced vs non-coalesced access patterns
 05-reduction-patterns/    Tree reduction, warp shuffle, block reduction
-06-deep-learning-kernels/ Softmax with numerical stability, Flash Attention
+06-deep-learning-kernels/ Softmax, Flash Attention, ReLU, Layer Norm, Batch Norm
 07-loss-functions/        Loss functions (MSE with grid-stride reduction)
 08_warp_primitives/       Warp-level shuffle and vote intrinsics
 practice/                 Benchmark drivers and reference implementations
@@ -62,6 +62,25 @@ PROFILING-GUIDE.md        Notes on using Nsight Compute (ncu) on Windows
 |-------------------------------|--------------------------------------------------------------------------------------|
 | softmax.cu                    | Numerically stable three-pass softmax with worked numerical example                  |
 | flash_attention_explained.cu  | Flash Attention with online softmax, block tiling, and step-by-step commentary       |
+| relu.cu                       | ReLU activation using a grid-stride loop; reaches 250 GB/s on GTX 1660 Ti           |
+| layernorm.cu                  | Layer normalization fused in one kernel; warp-shuffle block reduce, 3-pass           |
+| batchnorm.cu                  | Batch normalization; per-channel mean and variance via shared-memory tree reduction  |
+
+### Key files in 07-loss-functions/
+
+| File    | Description                                                                                        |
+|---------|----------------------------------------------------------------------------------------------------|
+| mse.cu  | Mean squared error; grid-stride loop, warp-shuffle reduction, one atomicAdd per block              |
+
+### Layer norm kernel comparison, 4096 rows
+
+| Variant                                   | N=256 ms | N=1024 ms | N=4096 ms |
+|-------------------------------------------|----------|-----------|-----------|
+| A: single kernel, warp-shuffle block reduce | 0.013  | 0.043     | 1.197     |
+| B: 3 separate kernels, smem tree reduce   | 0.036    | 0.101     | 1.109     |
+| C: one warp per row, pure shuffle         | 0.008    | 0.037     | 1.083     |
+
+Kernel C (one warp per row) wins for N up to 1024 because it needs no shared memory or syncthreads barriers. Kernel A overtakes it at N=1024 with more rows because 256 threads per block better hides memory latency. All three converge at N=4096 where the kernel is bandwidth-bound.
 
 ## How to build
 
