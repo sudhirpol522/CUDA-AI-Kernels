@@ -39,6 +39,7 @@ The repository is organized as a learning progression. The same operation is imp
 03-memory-coalescing/     Coalesced vs non-coalesced access patterns
 05-reduction-patterns/    Tree reduction, warp shuffle, block reduction
 06-deep-learning-kernels/ Softmax with numerical stability, Flash Attention
+07-loss-functions/        Loss functions (MSE with grid-stride reduction)
 08_warp_primitives/       Warp-level shuffle and vote intrinsics
 practice/                 Benchmark drivers and reference implementations
 compile.bat               Build helper for Windows with MSVC and nvcc
