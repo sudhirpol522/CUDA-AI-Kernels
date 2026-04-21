@@ -65,6 +65,16 @@ PROFILING-GUIDE.md        Notes on using Nsight Compute (ncu) on Windows
 | relu.cu                       | ReLU activation using a grid-stride loop; reaches 250 GB/s on GTX 1660 Ti           |
 | layernorm.cu                  | Layer normalization fused in one kernel; warp-shuffle block reduce, 3-pass           |
 | batchnorm.cu                  | Batch normalization; per-channel mean and variance via shared-memory tree reduction  |
+| batchnorm_2d.cu               | Batch normalization; single fused 2D-tiled kernel, one pass, coalesced access        |
+
+### Batch norm kernel comparison (N samples, C channels)
+
+| Variant                                         | N=256 C=64 | N=4096 C=256 | N=16384 C=1024 | Speedup (large) |
+|-------------------------------------------------|------------|--------------|----------------|-----------------|
+| A: 3 separate kernels, two-pass variance        | 0.025 ms   | 0.196 ms     | 6.830 ms       | 1.0x            |
+| B: single 2D-tiled kernel, one-pass variance    | 0.008 ms   | 0.130 ms     | 1.232 ms       | 5.5x            |
+
+Kernel B is faster because it reads the input once instead of twice, avoids two extra kernel launches, and accesses memory in a coalesced pattern (threads in a warp read consecutive channels). The trade-off is that its one-pass variance formula (E[x^2] - E[x]^2) is less numerically stable than the two-pass approach when values are large; a fmaxf guard prevents negative variance from fp32 cancellation.
 
 ### Key files in 07-loss-functions/
 
